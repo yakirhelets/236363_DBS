@@ -85,7 +85,7 @@ public class Solution {
 
     public static void clearTables()
     {
-
+        //YAKIR
     }
 
 
@@ -131,49 +131,50 @@ public class Solution {
 
     public static ReturnValue createViewer(Viewer viewer)
     {
-
+        //YAKIR
         return null;
     }
 
     public static ReturnValue deleteViewer(Viewer viewer)
     {
-
+        //YAKIR
         return null;
     }
 
     public static ReturnValue updateViewer(Viewer viewer)
     {
-
+        //YAKIR
         return null;
     }
 
     public static Viewer getViewer(Integer viewerId)
     {
-
+        //YAKIR
         return null;
     }
 
 
     public static ReturnValue createMovie(Movie movie)
     {
-
+        //GAL
         return null;
     }
 
     public static ReturnValue deleteMovie(Movie movie)
     {
-
+        //GAL
         return null;
     }
 
     public static ReturnValue updateMovie(Movie movie)
     {
+        //GAL
         return null;
     }
 
     public static Movie getMovie(Integer movieId)
     {
-
+        //GAL
         return null;
     }
 
@@ -181,44 +182,44 @@ public class Solution {
 
     public static ReturnValue addView(Integer viewerId, Integer movieId)
     {
-
+        //YAKIR
         return null;
     }
 
     public static ReturnValue removeView(Integer viewerId, Integer movieId)
     {
-
+        //YAKIR
         return null;
     }
 
     public static Integer getMovieViewCount(Integer movieId)
     {
-
+        //GAL
         return null;
     }
 
 
     public static ReturnValue addMovieRating(Integer viewerId, Integer movieId, MovieRating rating)
     {
-
+        //GAL
         return null;
     }
 
     public static ReturnValue removeMovieRating(Integer viewerId, Integer movieId)
     {
-
+        //GAL
         return null;
     }
 
     public static int getMovieLikesCount(int movieId)
     {
-
+        //GAL
         return -1;
     }
 
     public static int getMovieDislikesCount(int movieId)
     {
-
+        //GAL
         return -1;
     }
 
