@@ -12,24 +12,84 @@ public class Example {
 
     public static void main(String[] args) {
 
-        javaStringExample();
-        arrayListExample();
-        dropTable();
-        System.out.println("Creating hello_world Table");
-        createTable();
-        selectFromTable();
-        System.out.println("inserting data into table");
-        insertIntoTable();
-        selectFromTable();
-        System.out.println("updating data in table");
-        updateTable();
-        selectFromTable();
-        System.out.println("deleting data from table");
-        deleteFromTable();
-        selectFromTable();
-        dropTable();
+//        javaStringExample();
+//        arrayListExample();
+//        dropTable();
+//        System.out.println("Creating hello_world Table");
+        createTables();
+//              selectFromTable();
+//        System.out.println("inserting data into table");
+//        insertIntoTable();
+//        selectFromTable();
+//        System.out.println("updating data in table");
+//        updateTable();
+//        selectFromTable();
+//        System.out.println("deleting data from table");
+//        deleteFromTable();
+//        selectFromTable();
+//        dropTable();
+//
 
+    }
 
+    public static void createTables()
+    {
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+
+            pstmt = connection.prepareStatement("CREATE TABLE Viewer\n" +
+                    "(\n" +
+                    "    id integer,\n" +
+                    "    name text NOT NULL,\n" +
+                    "    PRIMARY KEY (id),\n" +
+                    "    CHECK (id > 0)\n" +
+                    ")");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+
+            pstmt = connection.prepareStatement("CREATE TABLE Movie\n" +
+                    "(\n" +
+                    "    id integer,\n" +
+                    "    name text NOT NULL,\n" +
+                    "    description text NOT NULL,\n" +
+                    "    PRIMARY KEY (id),\n" +
+                    "    CHECK (id > 0)\n" +
+                    ")");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+
+            pstmt = connection.prepareStatement("CREATE TABLE ViewedBy\n" +
+                    "(\n" +
+                    "    viewerId integer,\n" +
+                    "    movieId integer,\n" +
+                    "    rating ENUM {'like','dislike'} DEFAULT NULL,\n" +
+                    "    FOREIGN KEY (viewerId) REFERENCES Viewer(id),\n" +
+                    "    FOREIGN KEY (movieId) REFERENCES Movie(id),\n" +
+                    "    PRIMARY KEY (viewerId,movieId)\n" +
+                    ")");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     private static void deleteFromTable() {

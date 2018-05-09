@@ -17,7 +17,34 @@ public class Solution {
 
     public static void createTables()
     {
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
 
+            pstmt = connection.prepareStatement("CREATE TABLE Viewer\n" +
+                    "(\n" +
+                    "    id integer,\n" +
+                    "    name text ,\n" +
+                    "    PRIMARY KEY (id),\n" +
+                    "    CHECK (id > 0),\n" +
+                    "    CHECK (name NOT NULL)\n" +
+                    ")");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
 
