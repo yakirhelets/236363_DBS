@@ -24,10 +24,45 @@ public class Solution {
             pstmt = connection.prepareStatement("CREATE TABLE Viewer\n" +
                     "(\n" +
                     "    id integer,\n" +
-                    "    name text ,\n" +
+                    "    name text NOT NULL,\n" +
                     "    PRIMARY KEY (id),\n" +
-                    "    CHECK (id > 0),\n" +
-                    "    CHECK (name NOT NULL)\n" +
+                    "    CHECK (id > 0)\n" +
+                    ")");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+
+            pstmt = connection.prepareStatement("CREATE TABLE Movie\n" +
+                    "(\n" +
+                    "    id integer,\n" +
+                    "    name text NOT NULL,\n" +
+                    "    description text NOT NULL,\n" +
+                    "    PRIMARY KEY (id),\n" +
+                    "    CHECK (id > 0)\n" +
+                    ")");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+
+            pstmt = connection.prepareStatement("CREATE TYPE RatingType AS ENUM('LIKE','DISLIKE')\n");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+
+            pstmt = connection.prepareStatement("CREATE TABLE ViewedBy\n" +
+                    "(\n" +
+                    "    viewerId integer,\n" +
+                    "    movieId integer,\n" +
+                    "    rating RatingType,\n" +
+                    "    FOREIGN KEY (viewerId) REFERENCES Viewer(id),\n" +
+                    "    FOREIGN KEY (movieId) REFERENCES Movie(id),\n" +
+                    "    PRIMARY KEY (viewerId,movieId)\n" +
                     ")");
             pstmt.execute();
         } catch (SQLException e) {
@@ -56,7 +91,41 @@ public class Solution {
 
     public static void dropTables()
     {
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
 
+            pstmt = connection.prepareStatement("DROP TABLE IF EXISTS ViewedBy");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+
+            pstmt = connection.prepareStatement("DROP TABLE IF EXISTS Movie");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+
+            pstmt = connection.prepareStatement("DROP TABLE IF EXISTS Viewer");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
 
