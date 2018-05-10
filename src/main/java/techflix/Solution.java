@@ -13,6 +13,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import static techflix.business.ReturnValue.*;
+
 public class Solution {
 
     public static void createTables()
@@ -156,8 +158,47 @@ public class Solution {
 
     public static ReturnValue createMovie(Movie movie)
     {
-        //GAL
-        return null;
+        if (movie.getId() < 1 || movie.getName() == null || movie.getDescription() == null) return BAD_PARAMS;
+
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) AS res FROM Movie WHERE (id = ?)");
+            pstmt.setInt(1, movie.getId());
+            ResultSet results = pstmt.executeQuery();
+            if (results.getInt("res") > 0) return ALREADY_EXISTS;
+            results.close();
+
+        } catch (SQLException e) {
+            return ERROR;
+        }
+
+        pstmt = null;
+        try {
+
+            pstmt = connection.prepareStatement("INSERT INTO Movie" +
+                    "VALUES (?, ?, ?)");
+            pstmt.setInt(1, movie.getId());
+            pstmt.setString(1, movie.getName());
+            pstmt.setString(1, movie.getDescription());
+            pstmt.execute();
+
+        } catch (SQLException e) {
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                return ERROR;
+            }
+        }
+        return OK;
     }
 
     public static ReturnValue deleteMovie(Movie movie)
