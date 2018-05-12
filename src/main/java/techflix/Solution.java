@@ -351,15 +351,84 @@ public class Solution {
 
     public static Integer getMovieViewCount(Integer movieId)
     {
-        //GAL
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM ViewedBy WHERE movieId = ?");
+            pstmt.setInt(1, movieId);
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+            int result = results.getInt("COUNT");
+            results.close();
+            return result;
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.NOT_NULL_VIOLATION.getValue()
+        || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.UNIQUE_VIOLATION.getValue()
+                    || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+                return 0;
+            }
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return 0;
     }
 
 
     public static ReturnValue addMovieRating(Integer viewerId, Integer movieId, MovieRating rating)
     {
-        //GAL
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM View "+
+                    " WHERE viewerId = ? AND movieId = ?");
+            pstmt.setInt(1, viewerId);
+            pstmt.setInt(2, movieId);
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+
+            if (results.getInt("COUNT") == 1) {
+                pstmt = connection.prepareStatement("UPDATE ViewedBy " +
+                        "SET RatingType = ? " +
+                        "WHERE viewerId = ? AND movieId = ?");
+                pstmt.setObject(1, rating);
+                pstmt.setInt(2, viewerId);
+                pstmt.setInt(3, movieId);
+                pstmt.execute();
+            } else {
+                return NOT_EXISTS;
+            }
+            results.close();
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+                return NOT_EXISTS;
+            }
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return OK;
     }
 
     public static ReturnValue removeMovieRating(Integer viewerId, Integer movieId)
