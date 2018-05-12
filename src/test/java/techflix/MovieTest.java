@@ -26,9 +26,16 @@ public class MovieTest extends AbstractTest {
     public void simpleTestCreateExistedMovie() {
         Movie movie = new Movie();
         movie.setId(1);
-        movie.setName("c");
-        movie.setDescription("d");
+        movie.setName("a");
+        movie.setDescription("b");
         ReturnValue actual = Solution.createMovie(movie);
+
+        Movie secondMovie = new Movie();
+        secondMovie.setId(1);
+        secondMovie.setName("c");
+        secondMovie.setDescription("d");
+        actual = Solution.createMovie(secondMovie);
+
         assertEquals(ALREADY_EXISTS, actual);
     }
 
@@ -57,4 +64,44 @@ public class MovieTest extends AbstractTest {
         assertEquals(BAD_PARAMS, actual);
     }
 
+    @Test
+    public void simpleTestDeleteMovie() {
+        Movie movie = new Movie();
+        movie.setId(1);
+        movie.setName("a");
+        movie.setDescription("b");
+        ReturnValue actual = Solution.createMovie(movie);
+        assertEquals(OK, actual);
+
+        actual = Solution.deleteMovie(movie);
+        assertEquals(OK, actual);
+
+    }
+
+    @Test
+    public void simpleTestGetMovie() {
+        Movie resultMovie = Solution.getMovie(10000);
+        assertEquals(resultMovie.getId(), -1);
+        assertEquals(resultMovie.getName(), null);
+        assertEquals(resultMovie.getDescription(), null);
+
+    }
+
+    @Test
+    public void simpleTestUpdateMovie() {
+        Movie movie = new Movie();
+        movie.setId(1);
+        movie.setName("a");
+        movie.setDescription("b");
+        ReturnValue actual = Solution.createMovie(movie);
+        assertEquals(OK, actual);
+
+        movie.setDescription("c");
+        actual = Solution.updateMovie(movie);
+        assertEquals(OK, actual);
+
+        Movie resultMovie = Solution.getMovie(1);
+        assertEquals(resultMovie.getDescription(), "c");
+
+    }
 }

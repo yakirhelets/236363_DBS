@@ -14,9 +14,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import static techflix.business.ReturnValue.*;
-import static techflix.data.PostgresSQLErrorCodes.CHECK_VIOLATION;
-import static techflix.data.PostgresSQLErrorCodes.NOT_NULL_VIOLATION;
-import static techflix.data.PostgresSQLErrorCodes.UNIQUE_VIOLATION;
 
 public class Solution {
 
@@ -90,7 +87,41 @@ public class Solution {
 
     public static void clearTables()
     {
-        //YAKIR
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+
+            pstmt = connection.prepareStatement("DELETE FROM Viewer");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+
+            pstmt = connection.prepareStatement("DELETE FROM Movie");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+
+            pstmt = connection.prepareStatement("DELETE FROM ViewedBy");
+            pstmt.execute();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
 
@@ -198,20 +229,110 @@ public class Solution {
 
     public static ReturnValue deleteMovie(Movie movie)
     {
-        //GAL
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("DELETE FROM Movie " +
+                    "WHERE id = ? AND name = ? AND description = ?");
+            pstmt.setInt(1, movie.getId());
+            pstmt.setString(2, movie.getName());
+            pstmt.setString(3, movie.getDescription());
+            pstmt.execute();
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+                return NOT_EXISTS;
+            }
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return OK;
     }
 
     public static ReturnValue updateMovie(Movie movie)
     {
-        //GAL
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("UPDATE Movie " +
+                    "SET description = ? " +
+                    "WHERE id = ?");
+            pstmt.setString(1, movie.getDescription());
+            pstmt.setInt(2, movie.getId());
+            pstmt.execute();
+
+        } catch (SQLException e) {
+
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.UNIQUE_VIOLATION.getValue()) {
+                return ALREADY_EXISTS;
+            }
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+                return BAD_PARAMS;
+            }
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return OK;
     }
 
     public static Movie getMovie(Integer movieId)
     {
-        //GAL
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT * FROM Movie WHERE id = ?");
+            pstmt.setInt(1, movieId);
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+
+            Movie resultMovie = new Movie();
+            resultMovie.setId(results.getInt(1));
+            resultMovie.setName(results.getString(2));
+            resultMovie.setDescription(results.getString(3));
+
+            results.close();
+            return resultMovie;
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+                return Movie.badMovie();
+            }
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return Movie.badMovie();
     }
 
 

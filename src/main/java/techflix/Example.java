@@ -32,7 +32,6 @@ public class Example {
 
     }
 
-
     private static void deleteFromTable() {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
