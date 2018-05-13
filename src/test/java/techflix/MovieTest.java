@@ -168,4 +168,124 @@ public class MovieTest extends AbstractTest {
         // TODO: check if it has changed to dislike?
 
     }
+
+    @Test
+    public void simpleTestRemoveMovieRating() {
+        Movie movie = new Movie();
+        movie.setId(1);
+        movie.setName("a");
+        movie.setDescription("b");
+        ReturnValue actual = Solution.createMovie(movie);
+        assertEquals(OK, actual);
+
+        Viewer viewer = new Viewer();
+        viewer.setId(1);
+        viewer.setName("a");
+        actual = Solution.createViewer(viewer);
+        assertEquals(OK, actual);
+
+        actual = Solution.removeMovieRating(1, 1);
+        // removing a rating without adding the view first
+        assertEquals(actual, NOT_EXISTS);
+
+        Solution.addView(1, 1);
+        actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
+        assertEquals(actual, OK);
+
+        actual = Solution.removeMovieRating(1, 1);
+        assertEquals(actual, OK);
+
+        // TODO: check if it has changed to null?
+
+    }
+
+    @Test
+    public void simpleTestGetMovieLikesCount() {
+        Movie movie = new Movie();
+        movie.setId(1);
+        movie.setName("a");
+        movie.setDescription("b");
+        ReturnValue actual = Solution.createMovie(movie);
+        assertEquals(OK, actual);
+
+        Viewer viewer = new Viewer();
+        viewer.setId(1);
+        viewer.setName("a");
+        actual = Solution.createViewer(viewer);
+        assertEquals(OK, actual);
+
+        Viewer secondViewer = new Viewer();
+        secondViewer.setId(2);
+        secondViewer.setName("a");
+        actual = Solution.createViewer(secondViewer);
+        assertEquals(OK, actual);
+
+        Viewer thirdViewer = new Viewer();
+        thirdViewer.setId(3);
+        thirdViewer.setName("a");
+        actual = Solution.createViewer(thirdViewer);
+        assertEquals(OK, actual);
+
+        Solution.addView(1, 1);
+        actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
+        assertEquals(actual, OK);
+
+        Solution.addView(2, 1);
+        actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
+        assertEquals(actual, OK);
+
+        Solution.addView(3, 1);
+        actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
+        assertEquals(actual, OK);
+
+        // Only two viewers liked the movie, the third one disliked it
+        int res = Solution.getMovieLikesCount(1);
+        assertEquals(res, 2);
+
+    }
+
+    @Test
+    public void simpleTestGetMovieDislikesCount() {
+        Movie movie = new Movie();
+        movie.setId(1);
+        movie.setName("a");
+        movie.setDescription("b");
+        ReturnValue actual = Solution.createMovie(movie);
+        assertEquals(OK, actual);
+
+        Viewer viewer = new Viewer();
+        viewer.setId(1);
+        viewer.setName("a");
+        actual = Solution.createViewer(viewer);
+        assertEquals(OK, actual);
+
+        Viewer secondViewer = new Viewer();
+        secondViewer.setId(2);
+        secondViewer.setName("a");
+        actual = Solution.createViewer(secondViewer);
+        assertEquals(OK, actual);
+
+        Viewer thirdViewer = new Viewer();
+        thirdViewer.setId(3);
+        thirdViewer.setName("a");
+        actual = Solution.createViewer(thirdViewer);
+        assertEquals(OK, actual);
+
+        Solution.addView(1, 1);
+        actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
+        assertEquals(actual, OK);
+
+        Solution.addView(2, 1);
+        actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
+        assertEquals(actual, OK);
+
+        Solution.addView(3, 1);
+        actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
+        assertEquals(actual, OK);
+
+        // All three viewers disliked the movie
+        int res = Solution.getMovieDislikesCount(1);
+        assertEquals(res, 3);
+
+    }
 }

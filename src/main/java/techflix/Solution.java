@@ -390,7 +390,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM View "+
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM ViewedBy "+
                     " WHERE viewerId = ? AND movieId = ?");
             pstmt.setInt(1, viewerId);
             pstmt.setInt(2, movieId);
@@ -411,7 +411,8 @@ public class Solution {
             results.close();
 
         } catch (SQLException e) {
-            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue()) {
                 return NOT_EXISTS;
             }
             return ERROR;
@@ -433,20 +434,115 @@ public class Solution {
 
     public static ReturnValue removeMovieRating(Integer viewerId, Integer movieId)
     {
-        //GAL
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM ViewedBy "+
+                    " WHERE viewerId = ? AND movieId = ?");
+            pstmt.setInt(1, viewerId);
+            pstmt.setInt(2, movieId);
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+
+            if (results.getInt("COUNT") == 1) {
+                pstmt = connection.prepareStatement("UPDATE ViewedBy " +
+                        "SET RatingType = ? " +
+                        "WHERE viewerId = ? AND movieId = ?");
+                pstmt.setObject(1, null);
+                pstmt.setInt(2, viewerId);
+                pstmt.setInt(3, movieId);
+                pstmt.execute();
+            } else {
+                return NOT_EXISTS;
+            }
+            results.close();
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue()) {
+                return NOT_EXISTS;
+            }
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return OK;
     }
 
     public static int getMovieLikesCount(int movieId)
     {
-        //GAL
-        return -1;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM ViewedBy "+
+                    " WHERE movieId = ? AND rating = ?");
+            pstmt.setInt(1, movieId);
+            pstmt.setObject(2, MovieRating.LIKE);
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+
+            int result = results.getInt("COUNT");
+            results.close();
+            return result;
+
+        } catch (SQLException e) {
+            return 0;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static int getMovieDislikesCount(int movieId)
     {
-        //GAL
-        return -1;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM ViewedBy "+
+                    " WHERE movieId = ? AND rating = ?");
+            pstmt.setInt(1, movieId);
+            pstmt.setObject(2, MovieRating.DISLIKE);
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+
+            int result = results.getInt("COUNT");
+            results.close();
+            return result;
+
+        } catch (SQLException e) {
+            return 0;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static ArrayList<Integer> getSimilarViewers(Integer viewerId)
