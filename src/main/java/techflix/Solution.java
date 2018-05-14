@@ -167,26 +167,144 @@ public class Solution {
 
     public static ReturnValue createViewer(Viewer viewer)
     {
-        //YAKIR
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("INSERT INTO Viewer " +
+                    "VALUES (?, ?)");
+            pstmt.setInt(1, viewer.getId());
+            pstmt.setString(2, viewer.getName());
+            pstmt.execute();
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.NOT_NULL_VIOLATION.getValue()) {
+                return BAD_PARAMS;
+            }
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.UNIQUE_VIOLATION.getValue()) {
+                return ALREADY_EXISTS;
+            }
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return OK;
     }
 
     public static ReturnValue deleteViewer(Viewer viewer)
     {
-        //YAKIR
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("DELETE FROM Viewer " +
+                    "WHERE id = ? AND name = ?");
+            pstmt.setInt(1, viewer.getId());
+            pstmt.setString(2, viewer.getName());
+            pstmt.execute();
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+                return NOT_EXISTS;
+            }
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return OK;
     }
 
     public static ReturnValue updateViewer(Viewer viewer)
     {
-        //YAKIR
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("UPDATE Viewer " +
+                    "SET description = ? " +
+                    "WHERE id = ?");
+            pstmt.setString(1, viewer.getName());
+            pstmt.setInt(2, viewer.getId());
+            pstmt.execute();
+
+        } catch (SQLException e) {
+
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.UNIQUE_VIOLATION.getValue()) {
+                return ALREADY_EXISTS;
+            }
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+                return BAD_PARAMS;
+            }
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return OK;
     }
 
     public static Viewer getViewer(Integer viewerId)
     {
-        //YAKIR
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT * FROM Viewer WHERE id = ?");
+            pstmt.setInt(1, viewerId);
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+
+            Viewer resultViewer = new Viewer();
+            resultViewer.setId(results.getInt(1));
+            resultViewer.setName(results.getString(2));
+
+            results.close();
+            return resultViewer;
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+                return Viewer.badViewer();
+            }
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return Viewer.badViewer();
     }
 
 
