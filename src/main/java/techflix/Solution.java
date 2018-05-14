@@ -239,7 +239,7 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement("UPDATE Viewer " +
-                    "SET description = ? " +
+                    "SET name = ? " +
                     "WHERE id = ?");
             pstmt.setString(1, viewer.getName());
             pstmt.setInt(2, viewer.getId());

@@ -28,8 +28,8 @@ public class ViewerTest extends AbstractTest {
         ReturnValue actual = Solution.createViewer(viewer);
 
         Viewer anotherViewer = new Viewer();
-        viewer.setId(1);
-        viewer.setName("baaa");
+        anotherViewer.setId(1);
+        anotherViewer.setName("baaa");
         actual = Solution.createViewer(anotherViewer);
 
         assertEquals(ALREADY_EXISTS, actual);
@@ -63,7 +63,7 @@ public class ViewerTest extends AbstractTest {
     public void simpleTestDeleteViewer() {
         Viewer viewer = new Viewer();
         viewer.setId(1);
-        viewer.setName(null);
+        viewer.setName("a");
         ReturnValue actual = Solution.createViewer(viewer);
         assertEquals(OK, actual);
 
