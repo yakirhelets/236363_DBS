@@ -104,6 +104,7 @@ public class ViewerTest extends AbstractTest {
         Viewer resultViewer = Solution.getViewer(1);
         assertEquals(resultViewer.getName(), "c");
         //TODO: case updating invalid name
+        //test
     }
 
 //    @Test
