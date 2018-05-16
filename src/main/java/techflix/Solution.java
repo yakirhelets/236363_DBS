@@ -61,7 +61,7 @@ public class Solution {
                     "(\n" +
                     "    viewerId integer,\n" +
                     "    movieId integer,\n" +
-                    "    rating RatingType,\n" +
+                    "    rating RatingType ,\n" +
                     "    FOREIGN KEY (viewerId) REFERENCES Viewer(id),\n" +
                     "    FOREIGN KEY (movieId) REFERENCES Movie(id),\n" +
                     "    PRIMARY KEY (viewerId,movieId)\n" +
@@ -91,24 +91,24 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
 
-            pstmt = connection.prepareStatement("DELETE FROM Viewer");
+            pstmt = connection.prepareStatement("DELETE FROM ViewedBy");
             pstmt.execute();
         } catch (SQLException e) {
-            //e.printStackTrace()();
+//            e.printStackTrace();
         }
         try {
 
             pstmt = connection.prepareStatement("DELETE FROM Movie");
             pstmt.execute();
         } catch (SQLException e) {
-            //e.printStackTrace()();
+//            e.printStackTrace();
         }
         try {
 
-            pstmt = connection.prepareStatement("DELETE FROM ViewedBy");
+            pstmt = connection.prepareStatement("DELETE FROM Viewer");
             pstmt.execute();
         } catch (SQLException e) {
-            //e.printStackTrace()();
+//            e.printStackTrace();
         }
         finally {
             try {
@@ -573,9 +573,9 @@ public class Solution {
 
             if (results.getInt("COUNT") == 1) {
                 pstmt = connection.prepareStatement("UPDATE ViewedBy " +
-                        "SET RatingType = ? " +
+                        "SET rating = CAST(? AS RatingType) " +
                         "WHERE viewerId = ? AND movieId = ?");
-                pstmt.setObject(1, rating);
+                pstmt.setString(1, rating.toString());
                 pstmt.setInt(2, viewerId);
                 pstmt.setInt(3, movieId);
                 pstmt.execute();
@@ -620,7 +620,7 @@ public class Solution {
 
             if (results.getInt("COUNT") == 1) {
                 pstmt = connection.prepareStatement("UPDATE ViewedBy " +
-                        "SET RatingType = ? " +
+                        "SET rating = CAST(? AS RatingType) " +
                         "WHERE viewerId = ? AND movieId = ?");
                 pstmt.setObject(1, null);
                 pstmt.setInt(2, viewerId);
@@ -659,9 +659,8 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement("SELECT COUNT(*) FROM ViewedBy "+
-                    " WHERE movieId = ? AND rating = ?");
+                    " WHERE movieId = ? AND rating = 'LIKE' ");
             pstmt.setInt(1, movieId);
-            pstmt.setObject(2, MovieRating.LIKE);
             ResultSet results = pstmt.executeQuery();
             results.next();
 
@@ -692,9 +691,9 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement("SELECT COUNT(*) FROM ViewedBy "+
-                    " WHERE movieId = ? AND rating = ?");
+                    " WHERE movieId = ? AND rating = CAST(? AS RatingType)");
             pstmt.setInt(1, movieId);
-            pstmt.setObject(2, MovieRating.DISLIKE);
+            pstmt.setString(2, MovieRating.DISLIKE.toString());
             ResultSet results = pstmt.executeQuery();
             results.next();
 

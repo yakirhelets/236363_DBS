@@ -13,13 +13,11 @@ public class SimpleTest extends  AbstractTest {
     public void simpleTestCreateUser()
     {
 
-
         Viewer viewer1 = new Viewer();
         viewer1.setName("viewer1");
         viewer1.setId(1);
         ReturnValue actual = Solution.createViewer(viewer1);
         assertEquals(OK, actual);
-
 
     }
 

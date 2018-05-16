@@ -51,7 +51,7 @@ public class MovieTest extends AbstractTest {
     @Test
     public void simpleTestCreateMovieIllegalNameAndDescription() {
         Movie movie = new Movie();
-        movie.setId(3);
+        movie.setId(1);
         movie.setName(null);
         movie.setDescription("b");
         ReturnValue actual = Solution.createMovie(movie);
@@ -80,9 +80,9 @@ public class MovieTest extends AbstractTest {
     @Test
     public void simpleTestGetMovie() {
         Movie resultMovie = Solution.getMovie(10000);
-        assertEquals(resultMovie.getId(), -1);
-        assertEquals(resultMovie.getName(), null);
-        assertEquals(resultMovie.getDescription(), null);
+        assertEquals(-1, resultMovie.getId());
+        assertEquals(null, resultMovie.getName());
+        assertEquals(null, resultMovie.getDescription());
 
     }
 
@@ -100,7 +100,7 @@ public class MovieTest extends AbstractTest {
         assertEquals(OK, actual);
 
         Movie resultMovie = Solution.getMovie(1);
-        assertEquals(resultMovie.getDescription(), "c");
+        assertEquals("c", resultMovie.getDescription());
 
     }
 
@@ -135,7 +135,7 @@ public class MovieTest extends AbstractTest {
         Solution.addView(2, 1);
 
         int res = (Integer)Solution.getMovieViewCount(1);
-        assertEquals(res, 2);
+        assertEquals(2, res);
 
     }
 
@@ -156,14 +156,14 @@ public class MovieTest extends AbstractTest {
 
         actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
         // adding a rating without adding the view first
-        assertEquals(actual, NOT_EXISTS);
+        assertEquals(NOT_EXISTS, actual);
 
         Solution.addView(1, 1);
         actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
-        assertEquals(actual, OK);
+        assertEquals(OK, actual);
 
         actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
-        assertEquals(actual, OK);
+        assertEquals(OK, actual);
 
         // TODO: check if it has changed to dislike?
 
@@ -228,19 +228,19 @@ public class MovieTest extends AbstractTest {
 
         Solution.addView(1, 1);
         actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
-        assertEquals(actual, OK);
+        assertEquals(OK, actual);
 
         Solution.addView(2, 1);
-        actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
-        assertEquals(actual, OK);
+        actual = Solution.addMovieRating(2, 1, MovieRating.LIKE);
+        assertEquals(OK, actual);
 
         Solution.addView(3, 1);
-        actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
-        assertEquals(actual, OK);
+        actual = Solution.addMovieRating(3, 1, MovieRating.DISLIKE);
+        assertEquals(OK, actual);
 
         // Only two viewers liked the movie, the third one disliked it
         int res = Solution.getMovieLikesCount(1);
-        assertEquals(res, 2);
+        assertEquals(2, res);
 
     }
 
@@ -276,16 +276,16 @@ public class MovieTest extends AbstractTest {
         assertEquals(OK, actual);
 
         Solution.addView(2, 1);
-        actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
+        actual = Solution.addMovieRating(2, 1, MovieRating.DISLIKE);
         assertEquals(OK, actual);
 
         Solution.addView(3, 1);
-        actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
+        actual = Solution.addMovieRating(3, 1, MovieRating.DISLIKE);
         assertEquals(OK, actual);
 
         // All three viewers disliked the movie
         int res = Solution.getMovieDislikesCount(1);
-        assertEquals(res, 3);
+        assertEquals(3, res);
 
     }
 }
