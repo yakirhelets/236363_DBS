@@ -186,14 +186,14 @@ public class MovieTest extends AbstractTest {
 
         actual = Solution.removeMovieRating(1, 1);
         // removing a rating without adding the view first
-        assertEquals(actual, NOT_EXISTS);
+        assertEquals(NOT_EXISTS, actual);
 
         Solution.addView(1, 1);
         actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
-        assertEquals(actual, OK);
+        assertEquals(OK, actual);
 
         actual = Solution.removeMovieRating(1, 1);
-        assertEquals(actual, OK);
+        assertEquals(OK, actual);
 
         // TODO: check if it has changed to null?
 
@@ -273,15 +273,15 @@ public class MovieTest extends AbstractTest {
 
         Solution.addView(1, 1);
         actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
-        assertEquals(actual, OK);
+        assertEquals(OK, actual);
 
         Solution.addView(2, 1);
         actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
-        assertEquals(actual, OK);
+        assertEquals(OK, actual);
 
         Solution.addView(3, 1);
         actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
-        assertEquals(actual, OK);
+        assertEquals(OK, actual);
 
         // All three viewers disliked the movie
         int res = Solution.getMovieDislikesCount(1);

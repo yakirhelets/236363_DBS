@@ -106,6 +106,7 @@ public class ViewerTest extends AbstractTest {
         viewer.setName(null);
         ReturnValue actual = Solution.updateViewer(viewer);
         assertEquals(NOT_EXISTS, actual);
+
         viewer.setName("a");
         actual = Solution.updateViewer(viewer);
         assertEquals(NOT_EXISTS, actual);
@@ -160,66 +161,96 @@ public class ViewerTest extends AbstractTest {
 //        assertEquals(res, 2);
 //
 //    }
-//
-//    @Test
-//    public void simpleTestAddMovieRating() {
-//        Movie movie = new Movie();
-//        movie.setId(1);
-//        movie.setName("a");
-//        movie.setDescription("b");
-//        ReturnValue actual = Solution.createMovie(movie);
-//        assertEquals(OK, actual);
-//
-//        Viewer viewer = new Viewer();
-//        viewer.setId(1);
-//        viewer.setName("a");
-//        actual = Solution.createViewer(viewer);
-//        assertEquals(OK, actual);
-//
-//        actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
-//        // adding a rating without adding the view first
-//        assertEquals(actual, NOT_EXISTS);
-//
-//        Solution.addView(1, 1);
-//        actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
-//        assertEquals(actual, OK);
-//
-//        actual = Solution.addMovieRating(1, 1, MovieRating.DISLIKE);
-//        assertEquals(actual, OK);
-//
-//        // TODO: check if it has changed to dislike?
-//
-//    }
-//
-//    @Test
-//    public void simpleTestRemoveMovieRating() {
-//        Movie movie = new Movie();
-//        movie.setId(1);
-//        movie.setName("a");
-//        movie.setDescription("b");
-//        ReturnValue actual = Solution.createMovie(movie);
-//        assertEquals(OK, actual);
-//
-//        Viewer viewer = new Viewer();
-//        viewer.setId(1);
-//        viewer.setName("a");
-//        actual = Solution.createViewer(viewer);
-//        assertEquals(OK, actual);
-//
-//        actual = Solution.removeMovieRating(1, 1);
-//        // removing a rating without adding the view first
-//        assertEquals(actual, NOT_EXISTS);
-//
-//        Solution.addView(1, 1);
-//        actual = Solution.addMovieRating(1, 1, MovieRating.LIKE);
-//        assertEquals(actual, OK);
-//
-//        actual = Solution.removeMovieRating(1, 1);
-//        assertEquals(actual, OK);
-//
-//        // TODO: check if it has changed to null?
-//
-//    }
+
+    @Test
+    public void simpleTestAddView() {
+        Movie movie = new Movie();
+        movie.setId(1);
+        movie.setName("a");
+        movie.setDescription("b");
+
+        // adding a view absent movie or viewer
+        ReturnValue actual = Solution.addView(1, 1);
+        assertEquals(NOT_EXISTS, actual);
+
+        actual = Solution.createMovie(movie);
+        assertEquals(OK, actual);
+
+        Viewer viewer = new Viewer();
+        viewer.setId(1);
+        viewer.setName("a");
+
+        // adding a view without adding the viewer first
+        actual = Solution.addView(1, 1);
+        assertEquals(actual, NOT_EXISTS);
+
+        actual = Solution.createViewer(viewer);
+        assertEquals(OK, actual);
+
+        actual = Solution.addView(1, 1);
+        assertEquals(OK, actual);
+
+        Movie anotherMovie = new Movie();
+        movie.setId(3);
+        movie.setName("bab");
+        movie.setDescription("bab");
+
+        // adding a view without adding the viewer first
+        actual = Solution.addView(1, 2);
+        assertEquals(NOT_EXISTS, actual);
+
+        //already added view
+        actual = Solution.addView(1, 1);
+        assertEquals(ALREADY_EXISTS, actual);
+
+        actual = Solution.createMovie(anotherMovie);
+        assertEquals(OK, actual);
+        actual = Solution.addView(1, 3);
+        assertEquals(OK, actual);
+
+        //already added view
+        actual = Solution.addView(1, 3);
+        assertEquals(ALREADY_EXISTS, actual);
+    }
+
+    @Test
+    public void simpleTestRemoveView() {
+        Movie movie = new Movie();
+        movie.setId(1);
+        movie.setName("a");
+        movie.setDescription("b");
+
+        // removing a view without adding the viewer or the movie
+        ReturnValue actual = Solution.removeView(1, 1);
+        assertEquals(NOT_EXISTS, actual);
+
+        actual = Solution.createMovie(movie);
+        assertEquals(OK, actual);
+
+        Viewer viewer = new Viewer();
+        viewer.setId(1);
+        viewer.setName("a");
+
+        // removing a view without adding the viewer
+        actual = Solution.removeView(1, 1);
+        assertEquals(NOT_EXISTS, actual);
+
+        actual = Solution.createViewer(viewer);
+        assertEquals(OK, actual);
+
+        // removing a view without adding the view itself
+        actual = Solution.removeView(1, 1);
+        assertEquals(NOT_EXISTS, actual);
+
+        Solution.addView(1, 1);
+        assertEquals(OK, actual);
+        actual = Solution.removeView(1, 1);
+        assertEquals(OK, actual);
+
+        //trying to remove a removed view
+        actual = Solution.removeMovieRating(1, 1);
+        assertEquals(NOT_EXISTS, actual);
+    }
 //
 //    @Test
 //    public void simpleTestGetMovieLikesCount() {

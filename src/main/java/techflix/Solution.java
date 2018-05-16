@@ -247,8 +247,9 @@ public class Solution {
 
         } catch (SQLException e) {
 
-            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.UNIQUE_VIOLATION.getValue()) {
-                return ALREADY_EXISTS;
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue()
+                    || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.NOT_NULL_VIOLATION.getValue()) {
+                return NOT_EXISTS;
             }
             if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
                 return BAD_PARAMS;
@@ -457,14 +458,69 @@ public class Solution {
 
     public static ReturnValue addView(Integer viewerId, Integer movieId)
     {
-        //YAKIR
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("INSERT INTO ViewedBy " +
+                    "VALUES (?, ?)");
+            pstmt.setInt(1, viewerId);
+            pstmt.setInt(2, movieId);
+            pstmt.execute();
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue()) {
+                return NOT_EXISTS;
+            }
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.UNIQUE_VIOLATION.getValue()) {
+                return ALREADY_EXISTS;
+            }
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return OK;
     }
 
     public static ReturnValue removeView(Integer viewerId, Integer movieId)
     {
-        //YAKIR
-        return null;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("DELETE FROM ViewedBy " +
+                    "WHERE viewerId = ? AND movieId = ?");
+            pstmt.setInt(1, viewerId);
+            pstmt.setInt(2, movieId);
+            pstmt.execute();
+
+        } catch (SQLException e) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+                return NOT_EXISTS;
+            }
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return OK;
     }
 
     public static Integer getMovieViewCount(Integer movieId)
