@@ -69,8 +69,18 @@ public class ViewerTest extends AbstractTest {
 
         actual = Solution.deleteViewer(viewer);
         assertEquals(OK, actual);
-
     }
+
+    @Test
+    public void simpleTestDeleteNonExistViewer() {
+        Viewer viewer = new Viewer();
+        viewer.setId(1);
+        viewer.setName("a");
+
+        ReturnValue actual = Solution.deleteViewer(viewer);
+        assertEquals(NOT_EXISTS, actual);
+    }
+
 
     @Test
     public void simpleTestGetViewer() {
@@ -93,9 +103,20 @@ public class ViewerTest extends AbstractTest {
     public void simpleTestUpdateViewer() {
         Viewer viewer = new Viewer();
         viewer.setId(1);
+        viewer.setName(null);
+        ReturnValue actual = Solution.updateViewer(viewer);
+        assertEquals(NOT_EXISTS, actual);
         viewer.setName("a");
-        ReturnValue actual = Solution.createViewer(viewer);
+        actual = Solution.updateViewer(viewer);
+        assertEquals(NOT_EXISTS, actual);
+
+        viewer.setName("a");
+        actual = Solution.createViewer(viewer);
         assertEquals(OK, actual);
+
+        viewer.setName(null);
+        actual = Solution.updateViewer(viewer);
+        assertEquals(BAD_PARAMS, actual);
 
         viewer.setName("c");
         actual = Solution.updateViewer(viewer);
@@ -103,8 +124,6 @@ public class ViewerTest extends AbstractTest {
 
         Viewer resultViewer = Solution.getViewer(1);
         assertEquals(resultViewer.getName(), "c");
-        //TODO: case updating invalid name
-        //test
     }
 
 //    @Test
