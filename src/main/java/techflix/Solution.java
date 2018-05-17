@@ -12,7 +12,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
 import static techflix.business.ReturnValue.*;
 
 public class Solution {
@@ -206,12 +205,16 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
+            int flag;
             pstmt = connection.prepareStatement("DELETE FROM Viewer " +
-                    "WHERE id = ? AND name = ?");
+                    "WHERE id = ? AND name = ? " +
+                    "RETURNING *");
             pstmt.setInt(1, viewer.getId());
             pstmt.setString(2, viewer.getName());
             pstmt.execute();
-
+//            if (flag==0) {
+//                return NOT_EXISTS;
+//            }
         } catch (SQLException e) {
             if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
                 return NOT_EXISTS;
@@ -468,7 +471,8 @@ public class Solution {
             pstmt.execute();
 
         } catch (SQLException e) {
-            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue()) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue()) {
                 return NOT_EXISTS;
             }
             if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.UNIQUE_VIOLATION.getValue()) {
@@ -503,7 +507,8 @@ public class Solution {
             pstmt.execute();
 
         } catch (SQLException e) {
-            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue()) {
                 return NOT_EXISTS;
             }
             return ERROR;

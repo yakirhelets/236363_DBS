@@ -2,7 +2,6 @@ package techflix;
 
 import org.junit.Test;
 import techflix.business.Movie;
-import techflix.business.MovieRating;
 import techflix.business.ReturnValue;
 import techflix.business.Viewer;
 
@@ -191,9 +190,9 @@ public class ViewerTest extends AbstractTest {
         assertEquals(OK, actual);
 
         Movie anotherMovie = new Movie();
-        movie.setId(3);
-        movie.setName("bab");
-        movie.setDescription("bab");
+        anotherMovie.setId(3);
+        anotherMovie.setName("bab");
+        anotherMovie.setDescription("bab");
 
         // adding a view without adding the viewer first
         actual = Solution.addView(1, 2);
