@@ -241,7 +241,7 @@ public class ViewerTest extends AbstractTest {
         actual = Solution.removeView(1, 1);
         assertEquals(NOT_EXISTS, actual);
 
-        Solution.addView(1, 1);
+        actual = Solution.addView(1, 1);
         assertEquals(OK, actual);
         actual = Solution.removeView(1, 1);
         assertEquals(OK, actual);

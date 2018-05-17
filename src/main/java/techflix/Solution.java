@@ -205,16 +205,21 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            int flag;
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM Viewer WHERE id = ?");
+            pstmt.setInt(1, viewer.getId());
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+            int rowsToDelete = results.getInt("COUNT");
+            results.close();
+
+            if (rowsToDelete == 0) return NOT_EXISTS;
+
             pstmt = connection.prepareStatement("DELETE FROM Viewer " +
                     "WHERE id = ? AND name = ? " +
                     "RETURNING *");
             pstmt.setInt(1, viewer.getId());
             pstmt.setString(2, viewer.getName());
             pstmt.execute();
-//            if (flag==0) {
-//                return NOT_EXISTS;
-//            }
         } catch (SQLException e) {
             if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
                 return NOT_EXISTS;
@@ -241,6 +246,15 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM Viewer WHERE id = ?");
+            pstmt.setInt(1, viewer.getId());
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+            int rowsToChange = results.getInt("COUNT");
+            results.close();
+
+            if (rowsToChange == 0) return NOT_EXISTS;
+
             pstmt = connection.prepareStatement("UPDATE Viewer " +
                     "SET name = ? " +
                     "WHERE id = ?");
@@ -251,10 +265,10 @@ public class Solution {
         } catch (SQLException e) {
 
             if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue()
-                    || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.NOT_NULL_VIOLATION.getValue()) {
+                    || Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
                 return NOT_EXISTS;
             }
-            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.NOT_NULL_VIOLATION.getValue()) {
                 return BAD_PARAMS;
             }
             return ERROR;
@@ -354,6 +368,15 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM Movie WHERE id = ?");
+            pstmt.setInt(1, movie.getId());
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+            int rowsToDelete = results.getInt("COUNT");
+            results.close();
+
+            if (rowsToDelete == 0) return NOT_EXISTS;
+
             pstmt = connection.prepareStatement("DELETE FROM Movie " +
                     "WHERE id = ? AND name = ? AND description = ?");
             pstmt.setInt(1, movie.getId());
@@ -387,6 +410,15 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM Movie WHERE id = ?");
+            pstmt.setInt(1, movie.getId());
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+            int rowsToChange = results.getInt("COUNT");
+            results.close();
+
+            if (rowsToChange == 0) return NOT_EXISTS;
+
             pstmt = connection.prepareStatement("UPDATE Movie " +
                     "SET description = ? " +
                     "WHERE id = ?");
@@ -500,6 +532,18 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) FROM ViewedBy " +
+            "WHERE viewerId = ? AND movieId = ?");
+
+            pstmt.setInt(1, viewerId);
+            pstmt.setInt(2, movieId);
+            ResultSet results = pstmt.executeQuery();
+            results.next();
+            int rowsToDelete = results.getInt("COUNT");
+            results.close();
+
+            if (rowsToDelete == 0) return NOT_EXISTS;
+
             pstmt = connection.prepareStatement("DELETE FROM ViewedBy " +
                     "WHERE viewerId = ? AND movieId = ?");
             pstmt.setInt(1, viewerId);
@@ -726,14 +770,75 @@ public class Solution {
     public static ArrayList<Integer> getSimilarViewers(Integer viewerId)
     {
 
-        return null;
-    }
+        // TODO: check if need to set null to a different value
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT COUNT(*) AS X FROM viewedby WHERE viewerId = ?\n" +
+                    "SELECT viewerId V FROM ViewedBy\n" +
+                    "WHERE (" +
+                            "SELECT movieId FROM ViewedBy WHERE viewerId = ? MINUS\n" +
+                            "SELECT movieId FROM ViewedBy WHERE viewerId = V < X/4" +
+                    "       )\n" +
+                    "ORDER BY viewerId ASC");
+            ResultSet queryResults = pstmt.executeQuery();
+            ArrayList<Integer> results = new ArrayList<>();
+            while (queryResults.next()) {
+                results.add(queryResults.getInt("viewerId"));
+            }
+            queryResults.close();
+            return results;
+
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return new ArrayList<>();    }
 
 
     public static ArrayList<Integer> mostInfluencingViewers()
     {
+        // TODO: check if need to set null to a different value
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT viewerId FROM viewedby " +
+                    "GROUP BY viewerId ORDER BY COUNT(viewerId) DESC, COUNT(rating) DESC, viewerId ASC");
+            ResultSet queryResults = pstmt.executeQuery();
+            ArrayList<Integer> results = new ArrayList<>();
+            while (queryResults.next()) {
+                results.add(queryResults.getInt("viewerId"));
+            }
+            queryResults.close();
+            return results;
 
-        return null;
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return new ArrayList<>();
     }
 
 
