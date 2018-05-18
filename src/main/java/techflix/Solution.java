@@ -212,14 +212,20 @@ public class Solution {
             int rowsToDelete = results.getInt("COUNT");
             results.close();
 
-            if (rowsToDelete == 0) return NOT_EXISTS;
+            if (rowsToDelete == 0) {
+                return NOT_EXISTS;
+            } else {
+                pstmt = connection.prepareStatement("DELETE FROM ViewedBy " +
+                        "WHERE viewerId = ?");
+                pstmt.setInt(1, viewer.getId());
+                pstmt.execute();
 
-            pstmt = connection.prepareStatement("DELETE FROM Viewer " +
-                    "WHERE id = ? AND name = ? " +
-                    "RETURNING *");
-            pstmt.setInt(1, viewer.getId());
-            pstmt.setString(2, viewer.getName());
-            pstmt.execute();
+                pstmt = connection.prepareStatement("DELETE FROM Viewer " +
+                        "WHERE id = ? AND name = ? ");
+                pstmt.setInt(1, viewer.getId());
+                pstmt.setString(2, viewer.getName());
+                pstmt.execute();
+            }
         } catch (SQLException e) {
             if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
                 return NOT_EXISTS;
