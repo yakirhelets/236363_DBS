@@ -381,15 +381,21 @@ public class Solution {
             int rowsToDelete = results.getInt("COUNT");
             results.close();
 
-            if (rowsToDelete == 0) return NOT_EXISTS;
+            if (rowsToDelete == 0) {
+                return NOT_EXISTS;
+            } else {
+                pstmt = connection.prepareStatement("DELETE FROM ViewedBy " +
+                        "WHERE viewerId = ?");
+                pstmt.setInt(1, movie.getId());
+                pstmt.execute();
 
-            pstmt = connection.prepareStatement("DELETE FROM Movie " +
-                    "WHERE id = ? AND name = ? AND description = ?");
-            pstmt.setInt(1, movie.getId());
-            pstmt.setString(2, movie.getName());
-            pstmt.setString(3, movie.getDescription());
-            pstmt.execute();
-
+                pstmt = connection.prepareStatement("DELETE FROM Movie " +
+                        "WHERE id = ? AND name = ? AND description = ?");
+                pstmt.setInt(1, movie.getId());
+                pstmt.setString(2, movie.getName());
+                pstmt.setString(3, movie.getDescription());
+                pstmt.execute();
+            }
         } catch (SQLException e) {
             if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
                 return NOT_EXISTS;
