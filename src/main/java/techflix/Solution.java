@@ -385,7 +385,7 @@ public class Solution {
                 return NOT_EXISTS;
             } else {
                 pstmt = connection.prepareStatement("DELETE FROM ViewedBy " +
-                        "WHERE viewerId = ?");
+                        "WHERE movieId = ?");
                 pstmt.setInt(1, movie.getId());
                 pstmt.execute();
 
