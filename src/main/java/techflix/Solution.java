@@ -431,7 +431,8 @@ public class Solution {
             if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.UNIQUE_VIOLATION.getValue()) {
                 return ALREADY_EXISTS;
             }
-            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue()) {
+            if (Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.CHECK_VIOLATION.getValue() ||
+                    Integer.valueOf(e.getSQLState()) == PostgresSQLErrorCodes.NOT_NULL_VIOLATION.getValue() ) {
                 return BAD_PARAMS;
             }
             return ERROR;
@@ -668,13 +669,23 @@ public class Solution {
             results.next();
 
             if (results.getInt("COUNT") == 1) {
-                pstmt = connection.prepareStatement("UPDATE ViewedBy " +
-                        "SET rating = CAST(? AS RatingType) " +
-                        "WHERE viewerId = ? AND movieId = ?");
-                pstmt.setObject(1, null);
-                pstmt.setInt(2, viewerId);
-                pstmt.setInt(3, movieId);
-                pstmt.execute();
+                pstmt = connection.prepareStatement("SELECT rating FROM ViewedBy "+
+                        " WHERE viewerId = ? AND movieId = ?");
+                pstmt.setInt(1, viewerId);
+                pstmt.setInt(2, movieId);
+                ResultSet resultRating = pstmt.executeQuery();
+                resultRating.next();
+                if (resultRating.getObject("rating") == null) {
+                    return NOT_EXISTS;
+                } else {
+                    pstmt = connection.prepareStatement("UPDATE ViewedBy " +
+                            "SET rating = CAST(? AS RatingType) " +
+                            "WHERE viewerId = ? AND movieId = ?");
+                    pstmt.setObject(1, null);
+                    pstmt.setInt(2, viewerId);
+                    pstmt.setInt(3, movieId);
+                    pstmt.execute();
+                }
             } else {
                 return NOT_EXISTS;
             }
@@ -774,13 +785,15 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("SELECT COUNT(*) AS X FROM viewedby WHERE viewerId = ?\n" +
-                    "SELECT viewerId V FROM ViewedBy\n" +
-                    "WHERE (" +
-                            "SELECT movieId FROM ViewedBy WHERE viewerId = ? MINUS\n" +
-                            "SELECT movieId FROM ViewedBy WHERE viewerId = V < X/4" +
-                    "       )\n" +
-                    "ORDER BY viewerId ASC");
+            pstmt = connection.prepareStatement("SELECT viewerId AS v FROM ViewedBy " +
+                    "WHERE ( " +
+                            "(SELECT movieId FROM ViewedBy WHERE viewerId = ? EXCEPT " +
+                            "SELECT movieId FROM ViewedBy) < (SELECT COUNT(*) FROM viewedby WHERE viewerId = ?)/4 " +
+                    ") " +
+                    "ORDER BY viewerId ASC;");
+            pstmt.setInt(1, viewerId);
+            pstmt.setInt(2, viewerId);
+
             ResultSet queryResults = pstmt.executeQuery();
             ArrayList<Integer> results = new ArrayList<>();
             while (queryResults.next()) {
@@ -790,7 +803,7 @@ public class Solution {
             return results;
 
         } catch (SQLException e) {
-            //e.printStackTrace()();
+            e.printStackTrace();
         }
         finally {
             try {
