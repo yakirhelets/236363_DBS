@@ -796,15 +796,22 @@ public class Solution {
         // TODO: check if need to set null to a different value
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
+
+        // take viewedby, leave only the movies that the main user watched,
+        // then group by user id and do a count of all the movies for a specific user,
+        // so you end up with a user id and a matching number of movies this user has
+        // then compare each of this number to 0.75*number of movies the main one watched
         try {
-            pstmt = connection.prepareStatement("SELECT viewerId AS v FROM ViewedBy " +
-                    "WHERE ( " +
-                            "(SELECT movieId FROM ViewedBy WHERE viewerId = ? EXCEPT " +
-                            "SELECT movieId FROM ViewedBy) < (SELECT COUNT(*) FROM viewedby WHERE viewerId = ?)/4 " +
-                    ") " +
-                    "ORDER BY viewerId ASC;");
+            pstmt = connection.prepareStatement( "SELECT newTable.viewerId FROM\n" +
+                    "(SELECT COUNT(movieId), viewerId FROM viewedBy\n" +
+                    "WHERE movieId IN (SELECT movieId FROM viewedBy WHERE viewerId = ?) AND viewerId <> ?\n" +
+                    "GROUP BY viewerId\n" +
+                    "HAVING COUNT(movieId)>=0.75*(SELECT COUNT(movieID) FROM viewedBy WHERE viewerId = ?)\n" +
+                    ") AS newTable \n" +
+                    "ORDER BY newTable.viewerId ASC");
             pstmt.setInt(1, viewerId);
             pstmt.setInt(2, viewerId);
+            pstmt.setInt(3, viewerId);
 
             ResultSet queryResults = pstmt.executeQuery();
             ArrayList<Integer> results = new ArrayList<>();
