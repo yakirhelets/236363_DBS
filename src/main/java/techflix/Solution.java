@@ -797,10 +797,6 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
 
-        // take viewedby, leave only the movies that the main user watched,
-        // then group by user id and do a count of all the movies for a specific user,
-        // so you end up with a user id and a matching number of movies this user has
-        // then compare each of this number to 0.75*number of movies the main one watched
         try {
             pstmt = connection.prepareStatement( "SELECT newTable.viewerId FROM\n" +
                     "(SELECT COUNT(movieId), viewerId FROM viewedBy\n" +
@@ -812,6 +808,7 @@ public class Solution {
             pstmt.setInt(1, viewerId);
             pstmt.setInt(2, viewerId);
             pstmt.setInt(3, viewerId);
+            pstmt.execute();
 
             ResultSet queryResults = pstmt.executeQuery();
             ArrayList<Integer> results = new ArrayList<>();
@@ -876,8 +873,53 @@ public class Solution {
 
     public static ArrayList<Integer> getMoviesRecommendations(Integer viewerId)
     {
+        ArrayList<Integer> similarViewers = getSimilarViewers(viewerId);
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("CREATE TABLE similarViewers (viewerId integer)");
+            pstmt.execute();
+            for (int i : similarViewers) {
+                pstmt = connection.prepareStatement("INSERT INTO similarViewers VALUES (?)");
+                pstmt.setInt(1, i);
+                pstmt.execute();
+            }
+            pstmt = connection.prepareStatement("SELECT secondTable.movieId FROM\n" +
+                    "(SELECT firstTable.COUNT(rating), firstTable.movieId FROM \n" +
+                    "(SELECT * FROM viewedBy WHERE (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?) AND rating = 'LIKE' AND viewerId IN similarViewers) AS newTable)\n" +
+                    "AS firstTable\n" +
+                    "GROUP BY movieId)\n" +
+                    "AS secondTable\n" +
+                    "ORDER BY secondTable.COUNT(rating) DESC, movieId ASC");
+            pstmt.setInt(1, viewerId);
+            ResultSet queryResults = pstmt.executeQuery();
 
-            return null;
+            ArrayList<Integer> results = new ArrayList<>();
+            while (queryResults.next()) {
+                results.add(queryResults.getInt("movieId"));
+            }
+            queryResults.close();
+
+            pstmt = connection.prepareStatement("DROP TABLE similarViewers");
+            pstmt.execute();
+            return results;
+
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return new ArrayList<>();
     }
 
 
