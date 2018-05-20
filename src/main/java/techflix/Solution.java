@@ -884,7 +884,7 @@ public class Solution {
                 pstmt.setInt(1, i);
                 pstmt.execute();
             }
-            pstmt = connection.prepareStatement("SELECT secondTable.movieId FROM\n" +
+            pstmt = connection.prepareStatement("SELECT TOP 10 secondTable.movieId FROM\n" +
                     "(SELECT firstTable.COUNT(rating), firstTable.movieId FROM \n" +
                     "(SELECT * FROM viewedBy WHERE (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?) AND rating = 'LIKE' AND viewerId IN similarViewers) AS newTable)\n" +
                     "AS firstTable\n" +
@@ -925,8 +925,74 @@ public class Solution {
 
     public static ArrayList<Integer> getConditionalRecommendations(Integer viewerId, int movieId)
     {
+        ArrayList<Integer> similarViewers = getSimilarViewers(viewerId);
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
 
-        return null;
+        try {
+            pstmt = connection.prepareStatement("CREATE TABLE similarRankers (viewerId integer)");
+            pstmt.execute();
+
+            pstmt = connection.prepareStatement("SELECT rating FROM viewedBy WHERE viewerId = ? AND movieId = ?");
+            pstmt.setInt(1, viewerId);
+            pstmt.setInt(2, movieId);
+            ResultSet res1 = pstmt.executeQuery();
+            res1.next();
+
+            for (int i : similarViewers) {
+
+                pstmt = connection.prepareStatement("SELECT rating FROM viewedBy WHERE viewerId = ? AND movieId = ?");
+                pstmt.setInt(1, i);
+                pstmt.setInt(2, movieId);
+                ResultSet res2 = pstmt.executeQuery();
+                res2.next();
+
+                if (res1.getObject("rating") == res2.getObject("rating")) {
+                    pstmt = connection.prepareStatement("INSERT INTO similarRankers VALUES (?)");
+                    pstmt.setInt(1, i);
+                    pstmt.execute();
+                }
+                res2.close();
+
+            }
+            res1.close();
+
+            pstmt = connection.prepareStatement("SELECT TOP 10 secondTable.movieId FROM\n" +
+                    "(SELECT firstTable.COUNT(rating), firstTable.movieId FROM \n" +
+                    "(SELECT * FROM viewedBy WHERE (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?) AND rating = 'LIKE' AND viewerId IN similarRankers) AS newTable)\n" +
+                    "AS firstTable\n" +
+                    "GROUP BY movieId)\n" +
+                    "AS secondTable\n" +
+                    "ORDER BY secondTable.COUNT(rating) DESC, movieId ASC");
+            pstmt.setInt(1, viewerId);
+            ResultSet queryResults = pstmt.executeQuery();
+
+            ArrayList<Integer> results = new ArrayList<>();
+            while (queryResults.next()) {
+                results.add(queryResults.getInt("movieId"));
+            }
+            queryResults.close();
+
+            pstmt = connection.prepareStatement("DROP TABLE similarRankers");
+            pstmt.execute();
+            return results;
+
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return new ArrayList<>();
     }
 
 }
