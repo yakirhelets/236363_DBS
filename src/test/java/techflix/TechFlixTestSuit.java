@@ -19,7 +19,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({TestViewer.class, TestMovie.class, TestBasicApi.class/*, TestAdvancedApi.class*/})
+@SuiteClasses({TestViewer.class, TestMovie.class, TestBasicApi.class, TestAdvancedApi.class})
 public class TechFlixTestSuit {
     public TechFlixTestSuit() {
     }
