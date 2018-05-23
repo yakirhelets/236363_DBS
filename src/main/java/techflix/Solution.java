@@ -789,7 +789,6 @@ public class Solution {
     public static ArrayList<Integer> getSimilarViewers(Integer viewerId)
     {
 
-        // TODO: check if need to set null to a different value
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
 
@@ -834,7 +833,6 @@ public class Solution {
 
     public static ArrayList<Integer> mostInfluencingViewers()
     {
-        // TODO: check if need to set null to a different value
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
@@ -936,11 +934,11 @@ public class Solution {
             pstmt = connection.prepareStatement("SELECT rating FROM viewedBy WHERE viewerId = ? AND movieId = ?");
             pstmt.setInt(1, viewerId);
             pstmt.setInt(2, movieId);
-            ResultSet res3 = pstmt.executeQuery();
+            ResultSet res1 = pstmt.executeQuery();
 
-            if (res3.next()) {
-                if (res3.getObject("rating") == null) {
-                    res3.close();
+            if (res1.next()) {
+                if (res1.getObject("rating") == null) {
+                    res1.close();
                     return new ArrayList<>();
                 }
 
@@ -955,19 +953,22 @@ public class Solution {
                         pstmt = connection.prepareStatement("SELECT rating FROM viewedBy WHERE viewerId = ? AND movieId = ?");
                         pstmt.setInt(1, i);
                         pstmt.setInt(2, movieId);
-                        ResultSet res4 = pstmt.executeQuery();
-                        res4.next();
+                        ResultSet res2 = pstmt.executeQuery();
+                        res2.next();
 
-                        if (res4.getObject("rating") != null && res3.getObject("rating").equals(res4.getObject("rating"))) {
+                        if (res2.getObject("rating") != null && res1.getObject("rating").equals(res2.getObject("rating"))) {
                             pstmt = connection.prepareStatement("INSERT INTO similarRankers VALUES (?)");
                             pstmt.setInt(1, i);
                             pstmt.execute();
                         }
-                        res4.close();
+                        res2.close();
                     }
                 }
+            } else {
+                res1.close();
+                return new ArrayList<>();
             }
-            res3.close();
+            res1.close();
 
             pstmt = connection.prepareStatement("SELECT movieId, SUM(likesCount) AS likesCountSum, SUM(filter) AS rank FROM\n" +
                     "((SELECT movieId, COUNT(rating) AS likesCount, 1 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarRankers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)) AND (rating = 'LIKE'))\n" +
