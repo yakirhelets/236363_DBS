@@ -886,7 +886,7 @@ public class Solution {
                     "UNION ALL\n" +
                     "(SELECT movieId, 0 AS likesCount, 0 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarViewers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)))\n" +
                     "GROUP BY movieId ORDER BY movieId ASC)) t1\n" +
-                    "GROUP BY movieId ORDER BY rank DESC, likesCountSum DESC, movieId ASC");
+                    "GROUP BY movieId ORDER BY rank DESC, likesCountSum DESC, movieId ASC LIMIT 10");
             pstmt.setInt(1, viewerId);
             pstmt.setInt(2, viewerId);
             ResultSet queryResults = pstmt.executeQuery();
@@ -975,7 +975,7 @@ public class Solution {
                     "UNION ALL\n" +
                     "(SELECT movieId, 0 AS likesCount, 0 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarRankers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)))\n" +
                     "GROUP BY movieId ORDER BY movieId ASC)) t1\n" +
-                    "GROUP BY movieId ORDER BY rank DESC, likesCountSum DESC, movieId ASC");
+                    "GROUP BY movieId ORDER BY rank DESC, likesCountSum DESC, movieId ASC LIMIT 10");
             pstmt.setInt(1, viewerId);
             pstmt.setInt(2, viewerId);
             ResultSet queryResults = pstmt.executeQuery();
