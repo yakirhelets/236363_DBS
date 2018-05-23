@@ -838,8 +838,8 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("SELECT viewerId FROM viewedby " +
-                    "GROUP BY viewerId ORDER BY COUNT(viewerId) DESC, COUNT(rating) DESC, viewerId ASC");
+            pstmt = connection.prepareStatement("SELECT viewerId FROM viewedBy " +
+                    "GROUP BY viewerId ORDER BY COUNT(viewerId) DESC, COUNT(rating) DESC, viewerId ASC LIMIT 10");
             ResultSet queryResults = pstmt.executeQuery();
             ArrayList<Integer> results = new ArrayList<>();
             while (queryResults.next()) {
@@ -899,7 +899,7 @@ public class Solution {
             return results;
 
         } catch (SQLException e) {
-            e.printStackTrace();
+//            e.printStackTrace()();
         }
         finally {
             try {
@@ -988,7 +988,7 @@ public class Solution {
             return results;
 
         } catch (SQLException e) {
-            e.printStackTrace();
+//            e.printStackTrace()();
         }
         finally {
             try {
