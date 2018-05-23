@@ -884,14 +884,15 @@ public class Solution {
                 pstmt.setInt(1, i);
                 pstmt.execute();
             }
-            pstmt = connection.prepareStatement("SELECT TOP 10 secondTable.movieId FROM\n" +
-                    "(SELECT firstTable.COUNT(rating), firstTable.movieId FROM \n" +
-                    "(SELECT * FROM viewedBy WHERE (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?) AND rating = 'LIKE' AND viewerId IN similarViewers) AS newTable)\n" +
-                    "AS firstTable\n" +
-                    "GROUP BY movieId)\n" +
-                    "AS secondTable\n" +
-                    "ORDER BY secondTable.COUNT(rating) DESC, movieId ASC");
+            pstmt = connection.prepareStatement("SELECT movieId FROM\n" +
+                    "((SELECT movieId, COUNT(rating), 1 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarViewers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)) AND (rating = 'LIKE'))\n" +
+                    "GROUP BY movieId ORDER BY COUNT(rating) DESC, movieId ASC LIMIT 10)\n" +
+                    "UNION ALL\n" +
+                    "(SELECT movieId, COUNT(rating), 2 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarViewers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)))\n" +
+                    "GROUP BY movieId ORDER BY movieId ASC)) AS t3\n" +
+                    "ORDER BY filter ASC");
             pstmt.setInt(1, viewerId);
+            pstmt.setInt(2, viewerId);
             ResultSet queryResults = pstmt.executeQuery();
 
             ArrayList<Integer> results = new ArrayList<>();
@@ -899,15 +900,18 @@ public class Solution {
                 results.add(queryResults.getInt("movieId"));
             }
             queryResults.close();
-
-            pstmt = connection.prepareStatement("DROP TABLE similarViewers");
-            pstmt.execute();
             return results;
 
         } catch (SQLException e) {
-            //e.printStackTrace()();
+            e.printStackTrace();
         }
         finally {
+            try {
+                pstmt = connection.prepareStatement("DROP TABLE similarViewers");
+                pstmt.execute();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
             try {
                 pstmt.close();
             } catch (SQLException e) {
@@ -972,15 +976,18 @@ public class Solution {
                 results.add(queryResults.getInt("movieId"));
             }
             queryResults.close();
-
-            pstmt = connection.prepareStatement("DROP TABLE similarRankers");
-            pstmt.execute();
             return results;
 
         } catch (SQLException e) {
             //e.printStackTrace()();
         }
         finally {
+            try {
+                pstmt = connection.prepareStatement("DROP TABLE similarRankers");
+                pstmt.execute();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
             try {
                 pstmt.close();
             } catch (SQLException e) {
