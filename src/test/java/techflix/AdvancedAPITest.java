@@ -153,11 +153,11 @@ public class AdvancedAPITest extends AbstractTest {
         assertTrue(results.isEmpty());
 
         //case no similar viewers
-        ReturnValue actual = Solution.createViewer(viewer);
+        ReturnValue actual = Solution.createViewer(viewer);//first viewer created
         assertEquals(OK, actual);
 
         Movie[] movies = new Movie[12];
-        for (int i=0 ; i<12 ; i++) {//Creating 12 movies
+        for (int i=0 ; i<12 ; i++) {//Creating 12 movies. id's [1,...,12]
             movies[i] = new Movie();
             movies[i].setId(i+1);//id>0
             movies[i].setName("a");
@@ -166,27 +166,27 @@ public class AdvancedAPITest extends AbstractTest {
             assertEquals(OK, actual);
         }
 
-        Viewer secondViewer = new Viewer();
+        Viewer secondViewer = new Viewer();//second viewer created
         secondViewer.setId(2);
         secondViewer.setName("a");
         actual = Solution.createViewer(secondViewer);
         assertEquals(OK, actual);
 
-        Viewer thirdViewer = new Viewer();
+        Viewer thirdViewer = new Viewer();//third viewer created
         thirdViewer.setId(3);
         thirdViewer.setName("a");
         actual = Solution.createViewer(thirdViewer);
         assertEquals(OK, actual);
 
-        for (int i=0 ; i<2 ; i++) {//Add 2 views to viewer 1
+        for (int i=0 ; i<2 ; i++) {//viewer 1 watched movies [1,2]
             actual = Solution.addView(1, i+1);
             assertEquals(OK, actual);
         }
 
-        results = Solution.getMoviesRecommendations(1);
+        results = Solution.getMoviesRecommendations(1);//viewer 2,3 didn't watch any movie
         assertTrue(results.isEmpty());
 
-        for (int i=9 ; i<11 ; i++) {//Add 2 views to viewer 2 + ratings
+        for (int i=9 ; i<12 ; i++) {//viewer 2 watched movies [10,11,12] and liked them.
             actual = Solution.addView(2, i+1);
             assertEquals(OK, actual);
             actual = Solution.addMovieRating(2,i+1, MovieRating.LIKE);
@@ -197,68 +197,70 @@ public class AdvancedAPITest extends AbstractTest {
         assertTrue(results.isEmpty());
 
         //case array is full
-        for (int i=0 ; i<8 ; i++) {//Add 9 views to viewer 2 + ratings
+        for (int i=0 ; i<9 ; i++) {//viewer 2 watched movies [1,2,3,4,5,6,7,8,9,10,11,12] and liked them.
             actual = Solution.addView(2, i+1);
             assertEquals(OK, actual);
             actual = Solution.addMovieRating(2,i+1, MovieRating.LIKE);
             assertEquals(OK, actual);
         }
 
-        results = Solution.getMoviesRecommendations(1);
+        results = Solution.getMoviesRecommendations(1);//list should contain: [3,4,5,6,7,8,9,10,11,12]
         assertFalse(results.isEmpty());
+        assertEquals(10,results.size());
 
-        for (int i=0 ; i<10 ; i++) {//similar amount of likes. should be in ascending order by id: [2,...,12]
+        for (int i=0 ; i<10 ; i++) {//similar amount of likes. should be in ascending order by id: [3,...,12]
             int id = results.get(i);
             assertEquals(i+3, id);
         }
 
-        for (int i=0 ; i<12 ; i++) {//Add 9 views to viewer 2 + ratings
+        for (int i=0 ; i<12 ; i++) {//viewer 3 watched all movies without rating
             actual = Solution.addView(3, i+1);
             assertEquals(OK, actual);
         }
-        actual = Solution.addMovieRating(3,12, MovieRating.LIKE);
+        actual = Solution.addMovieRating(3,12, MovieRating.LIKE);//viewer 3 liked movie #12. now #12 have 2 likes.
         assertEquals(OK, actual);
 
-        results = Solution.getMoviesRecommendations(1);
+        results = Solution.getMoviesRecommendations(1);//list should contain: [12,3,4,5,6,7,8,9,10,11] in that order
         assertFalse(results.isEmpty());
+        assertEquals(10,results.size());
 
-        int id = results.get(0);//now movie #12 should be on top
+        int id = results.get(0);//now movie #12 should be on top: [12,...]
         assertEquals(12, id);
 
-        for (int i=1 ; i<10 ; i++) {//the rest are sorted by id
+        for (int i=1 ; i<10 ; i++) {//the rest are sorted by id: [...,3,4,5,6,7,8,9,10,11]
             id = results.get(i);
             assertEquals(i+2, id);
         }
 
         //case array is partly full
-        for (int i=2 ; i<7 ; i++) {//Add 4 views to viewer 1
+        for (int i=2 ; i<7 ; i++) {//viewer 1 watched [1,2,3,4,5,6,7]
             actual = Solution.addView(1, i+1);
             assertEquals(OK, actual);
         }
 
-        results = Solution.getMoviesRecommendations(1);
+        results = Solution.getMoviesRecommendations(1);//list should contain: [12,8,9,10,11] in that order
         assertFalse(results.isEmpty());
+        assertEquals(5,results.size());
 
         id = results.get(0);//now movie #12 should be on top
         assertEquals(12, id);
 
-        assertEquals(6, results.size());//should be of size 6 because viewer 1 watched 6 movies out of 12
-
         for (int i=1 ; i<results.size() ; i++) {//the rest are sorted by id: [12,6,...,11]
             id = results.get(i);
-            assertEquals(i+5, id);
+            assertEquals(i+7, id);
         }
 
         //case viewer watched all the movies on the list
-        for (int i=7 ; i<12 ; i++) {//Add 4 views to viewer 1
+        for (int i=7 ; i<12 ; i++) {//viewer 1 watched [1,2,3,4,5,6,7,8,9,10,11,12] i.e watched everything.
             actual = Solution.addView(1, i+1);
             assertEquals(OK, actual);
         }
 
-        results = Solution.getMoviesRecommendations(1);
+        results = Solution.getMoviesRecommendations(1);//list should be empty - no movies left to watch
         assertTrue(results.isEmpty());
     }
 
+    @Test
     public void simpleTestgetConditionalRecommendations() {
         //case viewer id does not exist
         Viewer viewer = new Viewer();
@@ -267,7 +269,7 @@ public class AdvancedAPITest extends AbstractTest {
 
         ReturnValue actual;
         Movie[] movies = new Movie[12];
-        for (int i=0 ; i<12 ; i++) {//Creating 12 movies
+        for (int i=0 ; i<12 ; i++) {//Creating 12 movies. id's [1,...,12]
             movies[i] = new Movie();
             movies[i].setId(i+1);//id>0
             movies[i].setName("b");
@@ -276,10 +278,13 @@ public class AdvancedAPITest extends AbstractTest {
             assertEquals(OK, actual);
         }
 
+        actual = Solution.createViewer(viewer);//viewer 1 created
+        assertEquals(OK, actual);
+
         ArrayList<Integer> results = Solution.getConditionalRecommendations(1, 1);
         assertTrue(results.isEmpty());
 
-        actual = Solution.addView(1,1);
+        actual = Solution.addView(1,1);//viewer 1 watched [1] and liked it
         assertEquals(OK, actual);
         actual = Solution.addMovieRating(1,1, MovieRating.LIKE);
         assertEquals(OK, actual);
@@ -288,85 +293,86 @@ public class AdvancedAPITest extends AbstractTest {
         assertTrue(results.isEmpty());
 
         //case no similar rankers
-        actual = Solution.createViewer(viewer);
-        assertEquals(OK, actual);
 
-        Viewer secondViewer = new Viewer();
+        Viewer secondViewer = new Viewer();//viewer 2 created
         secondViewer.setId(2);
         secondViewer.setName("a");
         actual = Solution.createViewer(secondViewer);
         assertEquals(OK, actual);
 
-        Viewer thirdViewer = new Viewer();
+        Viewer thirdViewer = new Viewer();//viewer 3 created
         thirdViewer.setId(3);
         thirdViewer.setName("a");
         actual = Solution.createViewer(thirdViewer);
         assertEquals(OK, actual);
 
-        for (int i=0 ; i<12 ; i++) {//Add all views to viewers 2,3
+        for (int i=0 ; i<12 ; i++) {//viewers 2,3 watched movies [1,...,12] i.e all of them
             actual = Solution.addView(2, i+1);
             assertEquals(OK, actual);
             actual = Solution.addView(3, i+1);
             assertEquals(OK, actual);
         }
 
-        results = Solution.getConditionalRecommendations(1, 1);
+        results = Solution.getConditionalRecommendations(1, 1);//should be empty because there are no likes from viewers 2,3
         assertTrue(results.isEmpty());
 
         //case array is full
-        for (int i=0 ; i<12 ; i++) {//Add all ranks to viewer 2
+        for (int i=0 ; i<12 ; i++) {//viewer 2 liked all [1,...,12] movies
             actual = Solution.addMovieRating(2,i+1, MovieRating.LIKE);
             assertEquals(OK, actual);
         }
 
-        results = Solution.getConditionalRecommendations(1,1);
+        results = Solution.getConditionalRecommendations(1,1);//list should contain [2,...,11] (max 10 movies)
         assertFalse(results.isEmpty());
+        assertEquals(10,results.size());
 
-        for (int i=0 ; i<10 ; i++) {//similar amount of likes. should be in ascending order by id: [2,...,12]
+        for (int i=0 ; i<10 ; i++) {//similar amount of likes. should be in ascending order by id: [2,...,11]
             int id = results.get(i);
             assertEquals(i+2, id);
         }
 
-        actual = Solution.addMovieRating(3,12, MovieRating.LIKE);
+        actual = Solution.addMovieRating(3,12, MovieRating.LIKE);//viewer 3 liked movie #12
         assertEquals(OK, actual);
 
-        results = Solution.getConditionalRecommendations(1, 1);
+        results = Solution.getConditionalRecommendations(1, 1);//list should contain [12,2,...,10] (max 10 movies)
         assertFalse(results.isEmpty());
+        assertEquals(10,results.size());
 
-        int id = results.get(0);//now movie #12 should be on top
+
+        int id = results.get(0);//now movie #12 should be on top: [12,...]
         assertEquals(12, id);
 
-        for (int i=1 ; i<10 ; i++) {//the rest are sorted by id
+        for (int i=1 ; i<10 ; i++) {//the rest are sorted by id: [...,2,...,10]
             id = results.get(i);
-            assertEquals(i+2, id);
+            assertEquals(i+1, id);
         }
 
         //case array is partly full
-        for (int i=2 ; i<7 ; i++) {//Add 4 views to viewer 1
+        for (int i=1 ; i<7 ; i++) {//viewer 1 watched [1,2,3,4,5,6,7] - like [1]
             actual = Solution.addView(1, i+1);
             assertEquals(OK, actual);
         }
 
-        results = Solution.getConditionalRecommendations(1,1);
+        results = Solution.getConditionalRecommendations(1,1);////list should contain [12,8,9,10,11] in that order
         assertFalse(results.isEmpty());
+        assertEquals(5,results.size());
 
-        id = results.get(0);//now movie #12 should be on top
+
+        id = results.get(0);//movie #12 should still be on top
         assertEquals(12, id);
 
-        assertEquals(6, results.size());//should be of size 6 because viewer 1 watched 6 movies out of 12
-
-        for (int i=1 ; i<results.size() ; i++) {//the rest are sorted by id: [12,6,...,11]
+        for (int i=1 ; i<results.size() ; i++) {//the rest are sorted by id: [...,8,9,10,11]
             id = results.get(i);
-            assertEquals(i+5, id);
+            assertEquals(i+7, id);
         }
 
         //case viewer watched all the movies on the list
-        for (int i=7 ; i<12 ; i++) {//Add 4 views to viewer 1
+        for (int i=7 ; i<12 ; i++) {//viewer 1 watched [1,2,3,4,5,6,7,8,9,10,11,12] - like [1]
             actual = Solution.addView(1, i+1);
             assertEquals(OK, actual);
         }
 
-        results = Solution.getConditionalRecommendations(1,1);
+        results = Solution.getConditionalRecommendations(1,1);//no movies left to watch
         assertTrue(results.isEmpty());
     }
 }
