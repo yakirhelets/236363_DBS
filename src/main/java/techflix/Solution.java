@@ -760,9 +760,8 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement("SELECT COUNT(*) FROM ViewedBy "+
-                    " WHERE movieId = ? AND rating = CAST(? AS RatingType)");
+                    " WHERE movieId = ? AND rating = 'DISLIKE' ");
             pstmt.setInt(1, movieId);
-            pstmt.setString(2, MovieRating.DISLIKE.toString());
             ResultSet results = pstmt.executeQuery();
             results.next();
 
@@ -795,13 +794,13 @@ public class Solution {
         PreparedStatement pstmt = null;
 
         try {
-            pstmt = connection.prepareStatement( "SELECT newTable.viewerId FROM\n" +
+            pstmt = connection.prepareStatement( "SELECT t1.viewerId FROM\n" +
                     "(SELECT COUNT(movieId), viewerId FROM viewedBy\n" +
                     "WHERE movieId IN (SELECT movieId FROM viewedBy WHERE viewerId = ?) AND viewerId <> ?\n" +
                     "GROUP BY viewerId\n" +
                     "HAVING COUNT(movieId)>=0.75*(SELECT COUNT(movieID) FROM viewedBy WHERE viewerId = ?)\n" +
-                    ") AS newTable \n" +
-                    "ORDER BY newTable.viewerId ASC");
+                    ") AS t1 \n" +
+                    "ORDER BY t1.viewerId ASC");
             pstmt.setInt(1, viewerId);
             pstmt.setInt(2, viewerId);
             pstmt.setInt(3, viewerId);
