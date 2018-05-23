@@ -333,6 +333,8 @@ public class AdvancedAPITest extends AbstractTest {
 
         actual = Solution.addMovieRating(3,12, MovieRating.LIKE);//viewer 3 liked movie #12
         assertEquals(OK, actual);
+        actual = Solution.addMovieRating(3,1, MovieRating.LIKE);//viewer 3 liked movie #1
+        assertEquals(OK, actual);
 
         results = Solution.getConditionalRecommendations(1, 1);//list should contain [12,2,...,10] (max 10 movies)
         assertFalse(results.isEmpty());
