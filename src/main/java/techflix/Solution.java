@@ -7,10 +7,7 @@ import techflix.business.Viewer;
 import techflix.data.DBConnector;
 import techflix.data.PostgresSQLErrorCodes;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import static techflix.business.ReturnValue.*;
 
@@ -884,13 +881,13 @@ public class Solution {
                 pstmt.setInt(1, i);
                 pstmt.execute();
             }
-            pstmt = connection.prepareStatement("SELECT movieId FROM\n" +
-                    "((SELECT movieId, COUNT(rating), 1 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarViewers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)) AND (rating = 'LIKE'))\n" +
+            pstmt = connection.prepareStatement("SELECT movieId, SUM(likesCount) AS likesCountSum, SUM(filter) AS rank FROM\n" +
+                    "((SELECT movieId, COUNT(rating) AS likesCount, 1 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarViewers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)) AND (rating = 'LIKE'))\n" +
                     "GROUP BY movieId ORDER BY COUNT(rating) DESC, movieId ASC LIMIT 10)\n" +
                     "UNION ALL\n" +
-                    "(SELECT movieId, COUNT(rating), 2 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarViewers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)))\n" +
-                    "GROUP BY movieId ORDER BY movieId ASC)) AS t3\n" +
-                    "ORDER BY filter ASC");
+                    "(SELECT movieId, 0 AS likesCount, 0 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarViewers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)))\n" +
+                    "GROUP BY movieId ORDER BY movieId ASC)) t1\n" +
+                    "GROUP BY movieId ORDER BY rank DESC, likesCountSum DESC, movieId ASC");
             pstmt.setInt(1, viewerId);
             pstmt.setInt(2, viewerId);
             ResultSet queryResults = pstmt.executeQuery();
@@ -940,35 +937,48 @@ public class Solution {
             pstmt = connection.prepareStatement("SELECT rating FROM viewedBy WHERE viewerId = ? AND movieId = ?");
             pstmt.setInt(1, viewerId);
             pstmt.setInt(2, movieId);
-            ResultSet res1 = pstmt.executeQuery();
-            res1.next();
+            ResultSet res3 = pstmt.executeQuery();
 
-            for (int i : similarViewers) {
-
-                pstmt = connection.prepareStatement("SELECT rating FROM viewedBy WHERE viewerId = ? AND movieId = ?");
-                pstmt.setInt(1, i);
-                pstmt.setInt(2, movieId);
-                ResultSet res2 = pstmt.executeQuery();
-                res2.next();
-
-                if (res1.getObject("rating") == res2.getObject("rating")) {
-                    pstmt = connection.prepareStatement("INSERT INTO similarRankers VALUES (?)");
-                    pstmt.setInt(1, i);
-                    pstmt.execute();
+            if (res3.next()) {
+                if (res3.getObject("rating") == null) {
+                    res3.close();
+                    return new ArrayList<>();
                 }
-                res2.close();
 
+                for (int i : similarViewers) {
+
+                    pstmt = connection.prepareStatement("SELECT COUNT(*) FROM viewedBy WHERE viewerId = ? AND movieId = ?");
+                    pstmt.setInt(1, i);
+                    pstmt.setInt(2, movieId);
+                    ResultSet tmpRes = pstmt.executeQuery();
+                    tmpRes.next();
+                    if (tmpRes.getInt("COUNT") == 1) {
+                        pstmt = connection.prepareStatement("SELECT rating FROM viewedBy WHERE viewerId = ? AND movieId = ?");
+                        pstmt.setInt(1, i);
+                        pstmt.setInt(2, movieId);
+                        ResultSet res4 = pstmt.executeQuery();
+                        res4.next();
+
+                        if (res4.getObject("rating") != null && res3.getObject("rating").equals(res4.getObject("rating"))) {
+                            pstmt = connection.prepareStatement("INSERT INTO similarRankers VALUES (?)");
+                            pstmt.setInt(1, i);
+                            pstmt.execute();
+                        }
+                        res4.close();
+                    }
+                }
             }
-            res1.close();
+            res3.close();
 
-            pstmt = connection.prepareStatement("SELECT TOP 10 secondTable.movieId FROM\n" +
-                    "(SELECT firstTable.COUNT(rating), firstTable.movieId FROM \n" +
-                    "(SELECT * FROM viewedBy WHERE (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?) AND rating = 'LIKE' AND viewerId IN similarRankers) AS newTable)\n" +
-                    "AS firstTable\n" +
-                    "GROUP BY movieId)\n" +
-                    "AS secondTable\n" +
-                    "ORDER BY secondTable.COUNT(rating) DESC, movieId ASC");
+            pstmt = connection.prepareStatement("SELECT movieId, SUM(likesCount) AS likesCountSum, SUM(filter) AS rank FROM\n" +
+                    "((SELECT movieId, COUNT(rating) AS likesCount, 1 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarRankers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)) AND (rating = 'LIKE'))\n" +
+                    "GROUP BY movieId ORDER BY COUNT(rating) DESC, movieId ASC LIMIT 10)\n" +
+                    "UNION ALL\n" +
+                    "(SELECT movieId, 0 AS likesCount, 0 AS filter FROM viewedBy WHERE ((viewerId IN (SELECT * from similarRankers)) AND (movieId NOT IN (SELECT movieId FROM viewedBy WHERE viewerId = ?)))\n" +
+                    "GROUP BY movieId ORDER BY movieId ASC)) t1\n" +
+                    "GROUP BY movieId ORDER BY rank DESC, likesCountSum DESC, movieId ASC");
             pstmt.setInt(1, viewerId);
+            pstmt.setInt(2, viewerId);
             ResultSet queryResults = pstmt.executeQuery();
 
             ArrayList<Integer> results = new ArrayList<>();
@@ -979,7 +989,7 @@ public class Solution {
             return results;
 
         } catch (SQLException e) {
-            //e.printStackTrace()();
+            e.printStackTrace();
         }
         finally {
             try {
